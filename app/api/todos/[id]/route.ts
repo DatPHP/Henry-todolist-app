@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 // GET todo detail
 export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;
+  const { id } = await params;
 
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
