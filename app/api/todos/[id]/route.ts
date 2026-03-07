@@ -32,9 +32,13 @@ export async function PUT(
 
   const body = await req.json();
 
+  const data: { content?: string; date?: Date } = {};
+  if (typeof body.content === "string") data.content = body.content;
+  if (body.date != null) data.date = new Date(body.date);
+
   const todo = await prisma.todo.update({
     where: { id },
-    data: body,
+    data,
   });
 
   return NextResponse.json(todo);
