@@ -2,20 +2,21 @@ import Link from "next/link";
 
 export default function TodoItem({ todo, mutate }: any) {
 
-    async function deleteTodo() {
-
-        console.log("Deleting id:", todo.id);
-      
-        if (!todo?.id) {
-          alert("Todo ID missing");
+    async function deleteTodo(id: string) {
+        if (!id) {
+          console.error("Delete failed: missing id");
           return;
         }
       
-        await fetch(`/api/todos/${todo.id}`, {
-          method: "DELETE"
+        const res = await fetch(`/api/todos/${id}`, {
+          method: "DELETE",
         });
       
-        mutate();
+        if (!res.ok) {
+          console.error("Delete API failed", await res.json());
+        }
+      
+        mutate(); // refresh list
       }
 
   return (
@@ -36,7 +37,7 @@ export default function TodoItem({ todo, mutate }: any) {
         </Link>
 
         <button
-          onClick={deleteTodo}
+          onClick={() => deleteTodo(todo.id)}
           className="text-red-600"
         >
           Delete
