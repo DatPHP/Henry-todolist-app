@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function TodoForm({ id }: any) {
+export default function TodoForm({ id }: { id?: string }) {
 
   const router = useRouter();
 
@@ -13,13 +13,13 @@ export default function TodoForm({ id }: any) {
   useEffect(() => {
     if (!id) return;
 
+    // fetch detail
     fetch(`/api/todos/${id}`)
       .then(r => r.json())
       .then(data => {
         setContent(data.content);
-        setDate(data.date.slice(0,10));
+        setDate(data.date.slice(0, 10)); // YYYY-MM-DD
       });
-
   }, [id]);
 
   async function handleSubmit(e: any) {

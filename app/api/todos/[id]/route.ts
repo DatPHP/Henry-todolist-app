@@ -1,5 +1,22 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+
+// GET todo detail
+export async function GET(
+  req: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;
+
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+  const todo = await prisma.todo.findUnique({ where: { id } });
+
+  if (!todo) return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+
+  return NextResponse.json(todo);
+}
 
 export async function PUT(
   req: Request,
