@@ -4,22 +4,42 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TodoForm({ id }: { id?: string }) {
-
   const router = useRouter();
 
   const [content, setContent] = useState("");
   const [date, setDate] = useState("");
+  const [loading, setLoading] = useState(!!id);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
-    // fetch detail
+    let cancelled = false;
+
     fetch(`/api/todos/${id}`)
-      .then(r => r.json())
-      .then(data => {
-        setContent(data.content);
-        setDate(data.date.slice(0, 10)); // YYYY-MM-DD
+      .then((r) => {
+        if (!r.ok) throw new Error(r.status === 404 ? "Todo not found" : "Failed to load");
+        return r.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setContent(data.content ?? "");
+        const dateStr = data.date ? new Date(data.date).toISOString().slice(0, 10) : "";
+        setDate(dateStr);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   async function handleSubmit(e: any) {
@@ -40,6 +60,25 @@ export default function TodoForm({ id }: { id?: string }) {
     });
 
     router.push("/");
+  }
+
+  if (loading) {
+    return <p className="text-gray-500">Loading todo...</p>;
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-2">
+        <p className="text-red-600">{error}</p>
+        <button
+          type="button"
+          className="text-blue-600 underline"
+          onClick={() => router.push("/")}
+        >
+          Back to list
+        </button>
+      </div>
+    );
   }
 
   return (
