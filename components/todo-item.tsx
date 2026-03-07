@@ -2,13 +2,21 @@ import Link from "next/link";
 
 export default function TodoItem({ todo, mutate }: any) {
 
-  async function deleteTodo() {
-    await fetch(`/api/todos/${todo.id}`, {
-      method: "DELETE",
-    });
+    async function deleteTodo() {
 
-    mutate();
-  }
+        console.log("Deleting id:", todo.id);
+      
+        if (!todo?.id) {
+          alert("Todo ID missing");
+          return;
+        }
+      
+        await fetch(`/api/todos/${todo.id}`, {
+          method: "DELETE"
+        });
+      
+        mutate();
+      }
 
   return (
     <div className="border p-3 rounded flex justify-between">
