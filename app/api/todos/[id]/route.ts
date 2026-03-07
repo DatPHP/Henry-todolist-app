@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 interface Params {
     params: { id: string };
   }
-  
+
 export async function PUT(req: Request, { params }: any) {
   const body = await req.json();
 
