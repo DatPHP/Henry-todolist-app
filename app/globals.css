@@ -15,7 +15,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #bab6b6;
   }
 }
 
@@ -47,7 +47,7 @@ body {
 
 .todayTime {
   font-size: 12px !important;
-  color: #939391 !important;
+  color: #464643 !important;
 }
 
 .numberDay {
@@ -69,7 +69,7 @@ body {
 
 .todoActiveTile {
   font-weight: 600;
-  color: #b9bab7;
+  color: #585956;
 }
 
 .todoDetails {
