@@ -31,7 +31,7 @@ export default function CalendarView({
           </div>
         </div>
         {/* Week strip */}
-        <div className="mt-6 mb-5 flex justify-between items-center px-1">
+        {/* <div className="mt-6 mb-5 flex justify-between items-center px-1">
           {daysOfWeek.map((day, index) => (
             <button
               key={index}
@@ -63,7 +63,7 @@ export default function CalendarView({
               </span>
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* FullCalendar */}
