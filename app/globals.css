@@ -24,3 +24,79 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Todo app UI */
+.todoBackground {
+  background: #f5f5f5;
+}
+.todoContent {
+  background: white;
+}
+.todoActiveTile {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+/* Todo css */
+.todoBackground {
+  background-color: #f7f7f7;
+}
+
+.todoContent {
+  background-color: #f9faf7;
+}
+
+.todayTime {
+  font-size: 12px !important;
+  color: #939391 !important;
+}
+
+.numberDay {
+  font-size: 15px !important;
+}
+
+.stringDay {
+  font-size: 10px !important;
+}
+
+.todooRow {
+  line-height: 1 !important;
+}
+
+.todoTitle {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.todoActiveTile {
+  font-weight: 600;
+  color: #b9bab7;
+}
+
+.todoDetails {
+  font-size: 10px;
+}
+
+.todo-edit-btn {
+  font-size: 12px !important;
+  text-transform: none;
+}
+
+.addTask {
+  color: #f8f9f6;
+}
+
+.cancelBtn {
+  color: #a3a3a1 !important;
+}
+
+.todoInput {
+  color: #f0f0ee !important;
+}
+
+.titleOption {
+  color: #3e3e3c;
+}
+
+.todoOption {
+  color: #bdbdbb;
+}
