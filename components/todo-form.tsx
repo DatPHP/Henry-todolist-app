@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  TextField,
+  Button,
+  IconButton,
+} from "@mui/material";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 export default function TodoForm({ id }: { id?: string }) {
   const router = useRouter();
@@ -62,6 +68,10 @@ export default function TodoForm({ id }: { id?: string }) {
     router.push("/");
   }
 
+  const handleCancel = () => {
+    router.push("/");
+  };
+
   if (loading) {
     return <p className="text-gray-500">Loading todo...</p>;
   }
@@ -73,7 +83,7 @@ export default function TodoForm({ id }: { id?: string }) {
         <button
           type="button"
           className="text-blue-600 underline"
-          onClick={() => router.push("/")}
+          onClick={handleCancel}
         >
           Back to list
         </button>
@@ -82,30 +92,74 @@ export default function TodoForm({ id }: { id?: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-
-      <input
-        className="border p-2 w-full"
-        placeholder="Todo content"
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="flex justify-between items-center mb-4 px-6">
+        <Button
+          variant="text"
+          className="cancelBtn !font-bold !capitalize"
+          onClick={handleCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="text"
+          className="!text-gray-900 !font-bold !capitalize"
+          type="submit"
+        >
+          {id ? "Update task" : "Add task"}
+        </Button>
+      </div>
+      <TextField
+        variant="standard"
+        placeholder="Write your task"
+        fullWidth
+        multiline
+        minRows={1}
+        className="todoInput !px-6"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         required
+        InputProps={{
+          disableUnderline: true,
+          sx: { fontSize: "26px" },
+        }}
       />
 
-      <input
-        type="date"
-        className="border p-2 w-full"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        required
-      />
+      {/* Options */}
+      <div className="divide-y divide-gray-200">
+        <div className="flex justify-between items-center py-4 px-6">
+          <span className="titleOption text-sm font-semibold">Alarm</span>
+          <div className="flex items-center">
+            <span className="todoOption">None</span>
+            <IconButton size="small">
+              <ArrowForwardIosIcon fontSize="small" className="todoOption" />
+            </IconButton>
+          </div>
+        </div>
 
-      <button
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Save
-      </button>
+        <div className="flex justify-between items-center py-4 px-6">
+          <span className="titleOption text-sm font-semibold">Reminder</span>
+          <div className="flex items-center">
+            <input
+              type="date"
+              className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+            />
+          </div>
+        </div>
 
+        <div className="flex justify-between items-center py-4 px-6">
+          <span className="titleOption text-sm font-semibold">Priority</span>
+          <div className="flex items-center">
+            <span className="todoOption">Low</span>
+            <IconButton size="small">
+              <ArrowForwardIosIcon fontSize="small" className="todoOption" />
+            </IconButton>
+          </div>
+        </div>
+      </div>
     </form>
   );
 }

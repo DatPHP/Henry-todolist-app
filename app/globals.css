@@ -37,66 +37,66 @@ body {
   color: #9ca3af;
 }
 /* Todo css */
-.todoBackground {
-  background-color: #f7f7f7;
+.todoBackground { 
+background-color: #f7f7f7;
 }
 
-.todoContent {
-  background-color: #f9faf7;
+.todoContent { 
+background-color: #f9faf7;
 }
 
-.todayTime {
-  font-size: 12px !important;
-  color: #464643 !important;
+.todayTime { 
+font-size: 12px !important; 
+color: #939391 !important;
 }
 
-.numberDay {
-  font-size: 15px !important;
+.numberDay { 
+font-size: 15px !important;
 }
 
-.stringDay {
-  font-size: 10px !important;
+.stringDay { 
+font-size: 10px !important;
 }
 
-.todooRow {
-  line-height: 1 !important;
+.todooRow { 
+line-height: 1 !important;
 }
 
-.todoTitle {
-  font-size: 16px !important;
-  font-weight: 600 !important;
+.todoTitle { 
+font-size: 16px !important; 
+font-weight: 600 !important;
 }
 
-.todoActiveTile {
-  font-weight: 600;
-  color: #585956;
+.todoActiveTile { 
+font-weight: 600; 
+color: #b9bab7;
 }
 
-.todoDetails {
-  font-size: 10px;
+.todoDetails { 
+font-size: 10px;
 }
 
-.todo-edit-btn {
-  font-size: 12px !important;
-  text-transform: none;
+.todo-edit-btn { 
+font-size: 12px !important; 
+text-transform: none;
 }
 
-.addTask {
-  color: #f8f9f6;
+.addTask { 
+color: #f8f9f6;
 }
 
-.cancelBtn {
-  color: #a3a3a1 !important;
+.cancelBtn { 
+color: #a3a3a1 !important;
 }
 
-.todoInput {
-  color: #f0f0ee !important;
+.todoInput { 
+color: #f0f0ee !important;
 }
 
-.titleOption {
-  color: #3e3e3c;
+.titleOption { 
+color: #3e3e3c;
 }
 
-.todoOption {
-  color: #bdbdbb;
+.todoOption { 
+color: #bdbdbb;
 }
