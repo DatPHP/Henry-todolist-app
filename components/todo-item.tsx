@@ -65,7 +65,7 @@ export default function TodoItem({ todo, mutate }: {
             {todo.content}
           </p>
           <p className={`text-sm text-gray-500 ${completed ? "text-gray-400" : ""}`}>
-            {todo.status}
+            {todo.status == 'not_completed' ? 'not completed' : 'completed'}
           </p>
         </div>
       </div>
