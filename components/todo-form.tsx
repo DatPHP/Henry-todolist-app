@@ -14,6 +14,7 @@ export default function TodoForm({ id }: { id?: string }) {
 
   const [content, setContent] = useState("");
   const [date, setDate] = useState("");
+  const [status, setStatus] = useState("not_completed");
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +36,7 @@ export default function TodoForm({ id }: { id?: string }) {
         setContent(data.content ?? "");
         const dateStr = data.date ? new Date(data.date).toISOString().slice(0, 10) : "";
         setDate(dateStr);
+        setStatus(data.status ?? "not_completed");
       })
       .catch((err) => {
         if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load");
@@ -62,6 +64,7 @@ export default function TodoForm({ id }: { id?: string }) {
       body: JSON.stringify({
         content,
         date,
+        status,
       }),
     });
 
@@ -147,6 +150,20 @@ export default function TodoForm({ id }: { id?: string }) {
               onChange={(e) => setDate(e.target.value)}
               required
             />
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center py-4 px-6">
+          <span className="titleOption text-sm font-semibold">Status</span>
+          <div className="flex items-center">
+            <select
+              className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="not_completed">Not Completed</option>
+              <option value="completed">Completed</option>
+            </select>
           </div>
         </div>
 

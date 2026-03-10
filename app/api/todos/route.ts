@@ -36,6 +36,7 @@ export async function POST(req: Request) {
     data: {
       content: body.content,
       date: new Date(body.date),
+      status: body.status || "not_completed",
     },
   });
 
