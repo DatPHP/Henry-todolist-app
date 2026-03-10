@@ -20,6 +20,10 @@ export default function TodoForm({ id }: { id?: string }) {
 
   useEffect(() => {
     if (!id) {
+      // Set to local today's date
+      const today = new Date();
+      const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      setDate(localToday);
       setLoading(false);
       return;
     }
