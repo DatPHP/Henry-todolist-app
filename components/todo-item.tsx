@@ -10,7 +10,10 @@ export default function TodoItem({ todo, mutate }: {
 
   async function deleteTodo(id: string) {
     if (!id) return;
-    const res = await fetch(`/api/todos/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/todos/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    });
     if (!res.ok) console.error("Delete API failed", await res.json());
     mutate();
   }
@@ -21,6 +24,7 @@ export default function TodoItem({ todo, mutate }: {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
       },
       body: JSON.stringify({ status: newStatus }),
     });

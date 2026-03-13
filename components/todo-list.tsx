@@ -3,7 +3,9 @@
 import useSWR from "swr";
 import TodoItem from "./todo-item";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = (url: string) => fetch(url, {
+  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+}).then((r) => r.json());
 
 export default function TodoList({ date }: { date: string }) {
   const { data, mutate } = useSWR(

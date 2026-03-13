@@ -1,19 +1,35 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 
+// Helper to extract and verify userId from JWT
+function getUserId(req: Request): string | null {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  try {
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    return decoded.userId;
+  } catch {
+    return null;
+  }
+}
 
 // GET todo detail
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const userId = getUserId(req);
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { id } = await params;
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
   const todo = await prisma.todo.findUnique({ where: { id } });
 
   if (!todo) return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+  if (todo.userId !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   return NextResponse.json(todo);
 }
@@ -22,6 +38,9 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const userId = getUserId(req);
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
   if (!id) {
     return NextResponse.json(
@@ -29,6 +48,10 @@ export async function PUT(
       { status: 400 }
     );
   }
+
+  const existingTodo = await prisma.todo.findUnique({ where: { id } });
+  if (!existingTodo) return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+  if (existingTodo.userId !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
 
@@ -46,9 +69,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const userId = getUserId(req);
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
   if (!id) {
     return NextResponse.json(
@@ -56,6 +82,10 @@ export async function DELETE(
       { status: 400 }
     );
   }
+
+  const existingTodo = await prisma.todo.findUnique({ where: { id } });
+  if (!existingTodo) return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+  if (existingTodo.userId !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   await prisma.todo.delete({
     where: { id },

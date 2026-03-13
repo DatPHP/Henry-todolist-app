@@ -30,7 +30,9 @@ export default function TodoForm({ id }: { id?: string }) {
 
     let cancelled = false;
 
-    fetch(`/api/todos/${id}`)
+    fetch(`/api/todos/${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    })
       .then((r) => {
         if (!r.ok) throw new Error(r.status === 404 ? "Todo not found" : "Failed to load");
         return r.json();
@@ -64,6 +66,7 @@ export default function TodoForm({ id }: { id?: string }) {
       method,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
       },
       body: JSON.stringify({
         content,
