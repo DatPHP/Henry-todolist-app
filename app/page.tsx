@@ -4,8 +4,27 @@ import { useState } from "react";
 import CalendarView from "@/components/calendar-view";
 import TodoList from "@/components/todo-list";
 import Link from "next/link";
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+
+  //  Check login ? not login to go homepage 
+  const router = useRouter()
+
+  useEffect(()=>{
+
+    const token = localStorage.getItem("token")
+
+    if(!token){
+
+      router.push("/login")
+
+    }
+
+  },[])
+
+  // show date and set value 
   const [date, setDate] = useState<string>(() =>
     new Date().toISOString().slice(0, 10),
   );
