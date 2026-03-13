@@ -4,7 +4,7 @@ import { getUserIdFromRequest } from "@/lib/auth";
 
 export async function GET(req: Request) {
 
-  const userId = getUserIdFromRequest(req);
+  const userId = await getUserIdFromRequest(req);
 
   if (!userId) {
     return NextResponse.json(
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
       { status: 401 }
     );
   }
-  
+
   const { searchParams } = new URL(req.url);
 
   const date = searchParams.get("date");
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
 
-  const userId = getUserIdFromRequest(req);
+  const userId = await getUserIdFromRequest(req);
 
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });

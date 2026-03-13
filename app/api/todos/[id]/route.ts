@@ -9,12 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
 
-  const userId = getUserIdFromRequest(_req);
+  const userId = await getUserIdFromRequest(_req);
 
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }
-  
+
   const { id } = await params;
 
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
@@ -31,7 +31,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
 
-  const userId = getUserIdFromRequest(req);
+  const userId = await getUserIdFromRequest(req);
 
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
@@ -66,7 +66,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
 
-  const userId = getUserIdFromRequest(_req);
+  const userId = await getUserIdFromRequest(_req);
 
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
