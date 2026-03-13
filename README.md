@@ -9,18 +9,24 @@ A calendar‑driven todo application built with Next.js App Router, FullCalendar
 - **`app/`**: Next.js App Router entrypoints and pages.
   - **`app/layout.tsx`**: Root layout, global fonts and `globals.css`.
   - **`app/page.tsx`**: Home page showing the calendar and the selected date’s todo list. Defaults to today’s date.
+  - **`app/login/page.tsx`**: Login page for users to authenticate.
+  - **`app/register/page.tsx`**: Registration page for new users.
   - **`app/todos/create/page.tsx`**: Page for creating a new todo, wraps `TodoForm`.
   - **`app/todos/[id]/edit/page.tsx`**: Page for editing an existing todo, fetches `params` and passes `id` to `TodoForm`.
-  - **`app/api/todos/route.ts`**: Collection API for listing and creating todos.
-  - **`app/api/todos/[id]/route.ts`**: Item API for reading, updating, and deleting a single todo.
+  - **`app/api/auth/login/route.ts`**: API for authenticating users and issuing JWTs.
+  - **`app/api/auth/register/route.ts`**: API for registering new users and hashing passwords.
+  - **`app/api/todos/route.ts`**: Collection API for listing and creating todos (protected by JWT).
+  - **`app/api/todos/[id]/route.ts`**: Item API for reading, updating, and deleting a single todo (protected by JWT).
 - **`components/`**: Reusable UI components.
   - **`calendar-view.tsx`**: FullCalendar month view, calls `onDateClick(dateStr)` when a day is clicked.
   - **`todo-list.tsx`**: Fetches todos for a given date with SWR and renders a list of `TodoItem`.
   - **`todo-item.tsx`**: Single todo row with status text, Edit link, and Delete button.
   - **`todo-form.tsx`**: Create/edit form. In edit mode it loads todo details from the API and fills the fields.
 - **`hooks/useTodos.ts`**: Custom hook wrapping SWR to load todos (optionally filtered by `date`).
-- **`lib/prisma.ts`**: Singleton Prisma client for server‑side API routes.
-- **`prisma/schema.prisma`**: Prisma data model (PostgreSQL) for the `Todo` entity.
+- **`lib/`**: Shared server-side utilities.
+  - **`lib/prisma.ts`**: Singleton Prisma client for server‑side API routes.
+  - **`lib/auth.ts`**: Edge-runtime compatible logic using `jose` to verify JWTs and extract User IDs.
+- **`prisma/schema.prisma`**: Prisma data model (PostgreSQL) for the `User` and `Todo` entities.
 - **`next.config.ts`, `tsconfig.json`, `package.json`**: Next.js, TypeScript, and dependency configuration.
 
 ---
@@ -35,6 +41,11 @@ A calendar‑driven todo application built with Next.js App Router, FullCalendar
 ---
 
 ### Usage & Key Features
+
+- **Authentication & Users**
+  - **Registration & Login**: Dedicated pages at `/register` and `/login` to create accounts. Passwords are securely hashed using `bcryptjs`.
+  - **User Permissions**: Each `Todo` item is strictly bound to the `User` who created it. Users can only view, edit, and delete their own posts.
+  - **JWT Authorization**: The app uses the edge-compatible `jose` library to verify JSON Web Tokens (JWT) passed in the `Authorization` headers for API security.
 
 - **Calendar‑driven navigation**
   - Click any date in the calendar to immediately show that day’s todos.
@@ -65,6 +76,13 @@ A calendar‑driven todo application built with Next.js App Router, FullCalendar
 
 ### API Endpoints
 
+#### Authentication APIs
+- **`POST /api/auth/register`**
+  - Registers a new user with `name`, `email`, and `password`. Passwords are hashed.
+- **`POST /api/auth/login`**
+  - Authenticates a user and returns a signed JWT token valid for 7 days.
+
+#### Todo APIs (Protected, Requires JWT)
 - **`GET /api/todos`**
   - **Query params**:
     - **`date` (optional)**: `YYYY-MM-DD`. If provided, returns todos whose `date` is within that day (inclusive start, exclusive next‑day end). If omitted, returns all todos.
@@ -125,12 +143,19 @@ A calendar‑driven todo application built with Next.js App Router, FullCalendar
   - Connection string is read from the **`POSTGRES_PRISMA_URL`** environment variable.
   - All API routes share a single Prisma client instance from `lib/prisma.ts` to avoid exhausting database connections.
 
-- **Core table: `Todo`**
-  - Backed by the Prisma `model Todo`:
+- **Core tables: `User` and `Todo`**
+  - **`User` Model**:
+    - **`id`**: String, primary key, dynamically generated (`crypto.randomUUID()`).
+    - **`name`**: String, user's chosen display name.
+    - **`email`**: String, globally unique identity.
+    - **`password`**: String, safely hashed.
+    - **`todos`**: A 1-to-many relationship mapping the user to their `Todo` entries.
+  - **`Todo` Model**:
     - **`id: String @id @default(cuid())`** – primary key, globally unique ID.
+    - **`userId: String`** – the ID of the `User` who created the todo.
     - **`content: String`** – human‑readable description of the task.
     - **`date: DateTime`** – the logical day the todo belongs to. The APIs convert simple `YYYY-MM-DD` strings from the UI into `Date` objects before persisting.
-    - **`status: String @default("not_completed")`** – current state of the todo (e.g., `"not_completed"`, `"completed"`; currently stored as a free‑form string, easy to refactor to an enum later).
+    - **`status: String @default("not_completed")`** – current state of the todo (e.g., `"not_completed"`, `"completed"`).
     - **`createdAt: DateTime @default(now())`** – server‑side creation timestamp.
     - **`updatedAt: DateTime @updatedAt`** – automatically bumped on every update.
 
@@ -146,22 +171,26 @@ A calendar‑driven todo application built with Next.js App Router, FullCalendar
 
 ---
 
-### Scalability & Future Development Potential
+### Scalability & Business Implementation
 
 - **Data model extensions**
-  - Add fields such as priority, tags, recurrence rules, or user ownership to support multi‑user, multi‑tenant setups.
-  - Introduce relationships (e.g., projects, categories) in `schema.prisma`.
+  - The flexible PostgreSQL schema (via Prisma) facilitates the ongoing addition of multi‑tenant SaaS features, team collaborations, and complex analytics.
+  - Adding fields for tags, recurrences, and granular project organizations requires minimal scaffolding.
 
 - **Performance & scale**
-  - Prisma + PostgreSQL can be scaled with read replicas and connection pooling.
-  - SWR’s caching layer reduces redundant API calls on frequently visited dates.
-  - API routes can be migrated to dedicated microservices if needed while keeping the same REST contract.
+  - Prisma + PostgreSQL is robust and can easily scale with connection pooling platforms (e.g., PgBouncer, Prisma Accelerate).
+  - Using JWTs over stateful sessions allows the Next.js/Vercel edge functions to independently verify requests globally with near-zero latency.
+  - SWR’s caching layer reduces redundant API round-trips for frequently visited calendar dates.
 
-- **Features roadmap**
-  - **Authentication & multi‑user support** (e.g., NextAuth, Clerk).
-  - **Recurring tasks** and templated days.
-  - **Reminders and notifications** (email, push, calendar sync).
-  - **Advanced calendar views** (week/day view, time grid) via more FullCalendar plugins.
+- **Business Potential**
+  - The calendar-centric layout combined with personalized, authenticated views forms a strong foundation for a freemium SaaS application targeting personal productivity or small businesses.
+
+---
+
+### Upcoming Implementations
+- **Session Logout**: Securely clear the client-side JWT and manage active sessions.
+- **Customizable Aesthetics**: Allow users to change the app's background colors and themes.
+- **Priority Labeling**: Add priority indicators (e.g., High, Medium, Low) to `Todo` items to aid sorting and urgency management.
 
 ---
 
