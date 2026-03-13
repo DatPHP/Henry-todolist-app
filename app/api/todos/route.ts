@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -11,8 +11,9 @@ export async function GET(req: Request) {
   const token = authHeader.split(" ")[1];
   let userId: string;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    userId = decoded.userId;
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+    const { payload } = await jwtVerify(token, secret);
+    userId = payload.userId as string;
   } catch (err) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
@@ -57,8 +58,9 @@ export async function POST(req: Request) {
   const token = authHeader.split(" ")[1];
   let userId: string;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    userId = decoded.userId;
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+    const { payload } = await jwtVerify(token, secret);
+    userId = payload.userId as string;
   } catch (err) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
