@@ -1,23 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { getUserIdFromRequest } from "@/lib/auth";
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
-  const token = authHeader.split(" ")[1];
-  let userId: string;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
-    const { payload } = await jwtVerify(token, secret);
-    userId = payload.userId as string;
-  } catch (err) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
+  const userId = getUserIdFromRequest(req);
 
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+  
   const { searchParams } = new URL(req.url);
 
   const date = searchParams.get("date");
@@ -30,10 +25,12 @@ export async function GET(req: Request) {
     const todos = await prisma.todo.findMany({
       where: {
         userId,
-        date: {
-          gte: start,
-          lt: end,
-        },
+        ...(date && {
+          date: {
+            gte: start,
+            lt: end
+          }
+        })
       },
       orderBy: { createdAt: "desc" },
     });
@@ -41,38 +38,27 @@ export async function GET(req: Request) {
     return NextResponse.json(todos);
   }
 
-  const todos = await prisma.todo.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-  });
+  const todos = await prisma.todo.findMany();
 
   return NextResponse.json(todos);
 }
 
 export async function POST(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
-  const token = authHeader.split(" ")[1];
-  let userId: string;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
-    const { payload } = await jwtVerify(token, secret);
-    userId = payload.userId as string;
-  } catch (err) {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  const userId = getUserIdFromRequest(req);
+
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const body = await req.json();
 
   const todo = await prisma.todo.create({
     data: {
-      userId,
       content: body.content,
       date: new Date(body.date),
       status: body.status || "not_completed",
+      userId
     },
   });
 
