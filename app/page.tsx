@@ -3,6 +3,7 @@
 import { useState } from "react";
 import CalendarView from "@/components/calendar-view";
 import TodoList from "@/components/todo-list";
+import LogoutButton from "@/components/logout-button";
 import Link from "next/link";
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -12,22 +13,25 @@ export default function Home() {
   //  Check login ? not login to go homepage 
   const router = useRouter()
 
-  useEffect(()=>{
+  useEffect(() => {
 
     const token = localStorage.getItem("token")
 
-    if(!token){
+    if (!token) {
 
       router.push("/login")
 
     }
 
-  },[])
+  }, [])
 
   // show date and set value 
   const [date, setDate] = useState<string>(() =>
     new Date().toISOString().slice(0, 10),
   );
+
+  // logout 
+  // (Moved to LogoutButton)
 
   return (
     <div className="min-h-screen todoBackground flex justify-center items-center">
@@ -36,6 +40,8 @@ export default function Home() {
           <div className="mb-4">
             <CalendarView date={date} onDateClick={setDate} />
           </div>
+          <LogoutButton />
+
           <div className="space-y-4">{date && <TodoList date={date} />}</div>
           {/* AddTodoButton */}
           <div className="flex justify-end mt-6 mb-2">
