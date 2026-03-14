@@ -38,10 +38,11 @@ export default function Home() {
       <div className="w-[450px] todoContent padding-4 mt-4 rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
         <main className="p-4">
           <div className="mb-4">
+            <LogoutButton />
+          </div>
+          <div className="mb-4">
             <CalendarView date={date} onDateClick={setDate} />
           </div>
-          <LogoutButton />
-
           <div className="space-y-4">{date && <TodoList date={date} />}</div>
           {/* AddTodoButton */}
           <div className="flex justify-end mt-6 mb-2">

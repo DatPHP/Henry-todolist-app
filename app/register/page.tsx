@@ -34,18 +34,15 @@ export default function RegisterPage(){
   }
 
   return(
-
-    <div className="flex items-center justify-center h-screen">
-
-      <form onSubmit={submit} className="bg-white p-6 rounded shadow w-80 space-y-4">
-
-        <h1 className="text-xl font-bold text-center">
+    <div className="min-h-screen todoBackground flex items-center justify-center">
+      <form onSubmit={submit} className="todoContent p-8 rounded-2xl border border-gray-200 shadow-lg w-[350px] space-y-4">
+        <h1 className="text-2xl font-bold text-center mb-2">
           Register
         </h1>
 
         <input
           placeholder="Name"
-          className="border w-full p-2"
+          className="border border-gray-300 w-full p-3 rounded-lg focus:outline-none focus:border-black"
           value={name}
           onChange={e=>setName(e.target.value)}
           required
@@ -54,7 +51,7 @@ export default function RegisterPage(){
         <input
           type="email"
           placeholder="Email"
-          className="border w-full p-2"
+          className="border border-gray-300 w-full p-3 rounded-lg focus:outline-none focus:border-black"
           value={email}
           onChange={e=>setEmail(e.target.value)}
           required
@@ -63,19 +60,16 @@ export default function RegisterPage(){
         <input
           type="password"
           placeholder="Password"
-          className="border w-full p-2"
+          className="border border-gray-300 w-full p-3 rounded-lg focus:outline-none focus:border-black"
           value={password}
           onChange={e=>setPassword(e.target.value)}
           required
         />
 
-        <button className="bg-green-600 text-white w-full p-2 rounded">
+        <button className="bg-black text-white w-full p-3 rounded-lg hover:bg-gray-800 transition mt-2">
           Register
         </button>
-
       </form>
-
     </div>
-
   )
 }
