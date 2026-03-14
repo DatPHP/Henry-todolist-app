@@ -1,15 +1,22 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import TodoItem from "./todo-item";
 
-const fetcher = (url: string) => fetch(url, {
-  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+const fetcher = ([url, token]: [string, string]) => fetch(url, {
+  headers: { Authorization: `Bearer ${token}` }
 }).then((r) => r.json());
 
 export default function TodoList({ date }: { date: string }) {
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
+
   const { data, mutate } = useSWR(
-    `/api/todos?date=${date}`,
+    token ? [`/api/todos?date=${date}`, token] : null,
     fetcher
   );
 
