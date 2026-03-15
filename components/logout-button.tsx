@@ -14,9 +14,14 @@ export default function LogoutButton({ className = "mb-4" }: { className?: strin
     <div className={`flex justify-end ${className}`}>
       <button
         onClick={handleLogout}
-        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center"
       >
-        Logout
+        <img
+          src="/logout-svgrepo-com.svg"
+          alt="logout"
+          width={20}
+          height={20}
+        />
       </button>
     </div>
   );
