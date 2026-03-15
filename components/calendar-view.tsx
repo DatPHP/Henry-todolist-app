@@ -4,6 +4,12 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
+
+const fetcher = ([url, token]: [string, string]) => fetch(url, {
+  headers: { Authorization: `Bearer ${token}` }
+}).then((r) => r.json());
 
 export default function CalendarView({
   date,
@@ -12,6 +18,21 @@ export default function CalendarView({
   date: string;
   onDateClick: (dateStr: string) => void;
 }) {
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
+
+  const { data } = useSWR(
+    token ? ["/api/todos", token] : null,
+    fetcher
+  );
+
+  const todoDates = new Set(
+    Array.isArray(data) ? data.map((todo: any) => dayjs(todo.date).format("YYYY-MM-DD")) : []
+  );
+
   const selectedDay = date ? dayjs(date) : dayjs();
   const startOfWeek = selectedDay.startOf("week");
   const daysOfWeek = Array.from({ length: 7 }, (_, i) =>
@@ -72,6 +93,21 @@ export default function CalendarView({
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           dateClick={(info) => onDateClick(info.dateStr)}
+          dayCellClassNames={(arg) => {
+            return dayjs(arg.date).format("YYYY-MM-DD") === selectedDay.format("YYYY-MM-DD") ? "bg-blue-100" : "";
+          }}
+          dayCellContent={(arg) => {
+            const dateStr = dayjs(arg.date).format("YYYY-MM-DD");
+            const hasTodo = todoDates.has(dateStr);
+            return (
+              <div className="flex flex-col items-center">
+                <span>{arg.dayNumberText}</span>
+                {hasTodo && (
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-0.5"></div>
+                )}
+              </div>
+            );
+          }}
           headerToolbar={{
             left: "prev",
             center: "title",

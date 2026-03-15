@@ -200,3 +200,7 @@ A calendar‑driven todo application built with Next.js App Router, FullCalendar
 - **Simple, explicit flows**: CRUD operations are implemented via clear, typed REST endpoints and small, focused components.
 - **Realistic stack**: Uses production‑ready tools (Next.js App Router, Prisma, PostgreSQL, SWR) to stay close to how a real‑world SaaS would be built.
 - **Extensibility over complexity**: The current feature set is intentionally small but implemented in a way that makes it easy to grow into more complex planning and scheduling features without rewriting the core.
+-Login account:
+email :
+[EMAIL_ADDRESS]
+pass: admin123 

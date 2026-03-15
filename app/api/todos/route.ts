@@ -38,7 +38,10 @@ export async function GET(req: Request) {
     return NextResponse.json(todos);
   }
 
-  const todos = await prisma.todo.findMany();
+  const todos = await prisma.todo.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
 
   return NextResponse.json(todos);
 }
