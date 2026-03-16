@@ -1,206 +1,57 @@
-## Todo Calendar
+# Henry Todo App
 
-A calendar‑driven todo application built with Next.js App Router, FullCalendar, and Prisma/PostgreSQL. Users can browse a monthly calendar, create todos for specific days, and manage them (view, edit, delete) via a simple UI backed by a REST API.
+A modern Todo List application built with Next.js and TailwindCSS.
 
----
+## Features
 
-### Project Structure
+- **Full-stack Task Management**: Add, delete, and mark tasks as completed.
+- **Calendar Integration**: Visualize your tasks on a responsive monthly calendar.
+- **JWT Authentication**: Secure user registration and login system.
+- **Responsive UI**: Optimized for both desktop and mobile devices.
 
-- **`app/`**: Next.js App Router entrypoints and pages.
-  - **`app/layout.tsx`**: Root layout, global fonts and `globals.css`.
-  - **`app/page.tsx`**: Home page showing the calendar and the selected date’s todo list. Defaults to today’s date.
-  - **`app/login/page.tsx`**: Login page for users to authenticate.
-  - **`app/register/page.tsx`**: Registration page for new users.
-  - **`app/todos/create/page.tsx`**: Page for creating a new todo, wraps `TodoForm`.
-  - **`app/todos/[id]/edit/page.tsx`**: Page for editing an existing todo, fetches `params` and passes `id` to `TodoForm`.
-  - **`app/api/auth/login/route.ts`**: API for authenticating users and issuing JWTs.
-  - **`app/api/auth/register/route.ts`**: API for registering new users and hashing passwords.
-  - **`app/api/todos/route.ts`**: Collection API for listing and creating todos (protected by JWT).
-  - **`app/api/todos/[id]/route.ts`**: Item API for reading, updating, and deleting a single todo (protected by JWT).
-- **`components/`**: Reusable UI components.
-  - **`calendar-view.tsx`**: FullCalendar month view, calls `onDateClick(dateStr)` when a day is clicked.
-  - **`todo-list.tsx`**: Fetches todos for a given date with SWR and renders a list of `TodoItem`.
-  - **`todo-item.tsx`**: Single todo row with status text, Edit link, and Delete button.
-  - **`todo-form.tsx`**: Create/edit form. In edit mode it loads todo details from the API and fills the fields.
-- **`hooks/useTodos.ts`**: Custom hook wrapping SWR to load todos (optionally filtered by `date`).
-- **`lib/`**: Shared server-side utilities.
-  - **`lib/prisma.ts`**: Singleton Prisma client for server‑side API routes.
-  - **`lib/auth.ts`**: Edge-runtime compatible logic using `jose` to verify JWTs and extract User IDs.
-- **`prisma/schema.prisma`**: Prisma data model (PostgreSQL) for the `User` and `Todo` entities.
-- **`next.config.ts`, `tsconfig.json`, `package.json`**: Next.js, TypeScript, and dependency configuration.
+## Tech Stack
 
----
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Frontend**: [React](https://reactjs.org/), [TailwindCSS](https://tailwindcss.com/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/)
+- **Authentication**: JWT via [jose](https://github.com/panva/jose)
+- **Data Fetching**: [SWR](https://swr.vercel.app/)
 
-### Business Objectives
+## Live Demo
 
-- **Daily planning**: Allow users to quickly see what needs to be done today, directly from a calendar view.
-- **Date‑centric organization**: Todos are attached to specific dates, making it easy to review past and future tasks.
-- **Simple CRUD workflow**: Minimal friction to create, edit, and delete tasks without complex project or tag systems.
-- **Backend‑ready**: Use a real database (PostgreSQL via Prisma) so the app can be deployed and scaled beyond a toy demo.
+[https://henry-todolist-app.vercel.app](https://henry-todolist-app.vercel.app)
 
----
+## Installation
 
-### Usage & Key Features
+Follow these steps to set up the project locally:
 
-- **Authentication & Users**
-  - **Registration & Login**: Dedicated pages at `/register` and `/login` to create accounts. Passwords are securely hashed using `bcryptjs`.
-  - **User Permissions**: Each `Todo` item is strictly bound to the `User` who created it. Users can only view, edit, and delete their own posts.
-  - **JWT Authorization**: The app uses the edge-compatible `jose` library to verify JSON Web Tokens (JWT) passed in the `Authorization` headers for API security.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/DatPHP/Henry-todolist-app
+   cd Henry-todolist-app
+   ```
 
-- **Calendar‑driven navigation**
-  - Click any date in the calendar to immediately show that day’s todos.
-  - When the app loads and no date is manually selected, it defaults to **today’s date** and shows today’s todo list.
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-- **Todo list for a selected day**
-  - The list below the calendar always reflects the currently selected date.
-  - Uses SWR for automatic revalidation after creates/updates/deletes.
+3. **Set up Environment Variables**:
+   Create a `.env` file in the root directory and add your database connection string:
+   ```env
+   DATABASE_URL="your_postgresql_url"
+   JWT_SECRET="your_jwt_secret"
+   ```
 
-- **Create todo**
-  - Navigate to `/todos/create` or use the **Create Todo** button on the home page.
-  - Form fields: **content** (text) and **date** (`YYYY-MM-DD`).
-  - Submits a `POST /api/todos` request to persist into PostgreSQL.
+4. **Initialize Database**:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-- **Edit todo**
-  - From the list, click **Edit** to go to `/todos/[id]/edit`.
-  - `TodoForm` fetches `GET /api/todos/[id]` and pre‑fills content and date.
-  - Submitting sends a `PUT /api/todos/[id]` with updated fields.
+5. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-- **Delete todo**
-  - Click **Delete** in a todo row to call `DELETE /api/todos/[id]`.
-  - On success, the SWR cache is invalidated and the list refreshes.
-
-- **Status & metadata**
-  - The `Todo` model includes `status`, `createdAt`, and `updatedAt` fields to support richer workflows later (e.g., completed vs pending).
-
----
-
-### API Endpoints
-
-#### Authentication APIs
-- **`POST /api/auth/register`**
-  - Registers a new user with `name`, `email`, and `password`. Passwords are hashed.
-- **`POST /api/auth/login`**
-  - Authenticates a user and returns a signed JWT token valid for 7 days.
-
-#### Todo APIs (Protected, Requires JWT)
-- **`GET /api/todos`**
-  - **Query params**:
-    - **`date` (optional)**: `YYYY-MM-DD`. If provided, returns todos whose `date` is within that day (inclusive start, exclusive next‑day end). If omitted, returns all todos.
-  - **Response**: JSON array of todo objects.
-
-- **`POST /api/todos`**
-  - **Body** (JSON):
-    - **`content`**: string
-    - **`date`**: string date, converted to `Date` on the server
-  - **Response**: JSON representation of the created todo.
-
-- **`GET /api/todos/[id]`**
-  - **Path param**: `id` (string, Prisma `cuid()`).
-  - **Response**:
-    - 200: todo JSON.
-    - 400/404: error JSON if `id` is missing or not found.
-
-- **`PUT /api/todos/[id]`**
-  - **Body** (JSON):
-    - Optional `content` and/or `date` fields. `date` is converted to a `Date` before updating.
-  - **Response**: JSON of the updated todo.
-
-- **`DELETE /api/todos/[id]`**
-  - **Response**: `{ success: true }` on success, with error JSON on failure.
-
----
-
-### Technologies & Libraries
-
-- **Framework & runtime**
-  - **Next.js 16 App Router** (`app/` directory, route handlers, server and client components).
-  - **React 19** for UI components.
-
-- **UI & calendar**
-  - **FullCalendar** (`@fullcalendar/react`, `@fullcalendar/daygrid`, `@fullcalendar/interaction`) for interactive month calendar view.
-  - **Tailwind CSS v4** (via `@tailwindcss/postcss` and `globals.css`) for modern styling.
-  - **next/font / Geist** for performant, good‑looking typography.
-
-- **Data & backend**
-  - **Prisma ORM 5.22** with **PostgreSQL** datasource.
-  - **`@prisma/client`** for typed database access.
-  - **Next.js Route Handlers** under `app/api/...` for REST endpoints.
-
-- **Client‑side data fetching**
-  - **SWR** for caching, revalidation, and optimistic updates of todo lists.
-  - **Custom hook** `useTodos` to encapsulate the SWR logic.
-
-- **Tooling**
-  - **TypeScript** for static typing.
-  - **ESLint + `eslint-config-next`** for linting and best practices.
-
----
-
-### Database (PostgreSQL & Prisma)
-
-- **Datasource configuration**
-  - Defined in `prisma/schema.prisma` with `provider = "postgresql"`.
-  - Connection string is read from the **`POSTGRES_PRISMA_URL`** environment variable.
-  - All API routes share a single Prisma client instance from `lib/prisma.ts` to avoid exhausting database connections.
-
-- **Core tables: `User` and `Todo`**
-  - **`User` Model**:
-    - **`id`**: String, primary key, dynamically generated (`crypto.randomUUID()`).
-    - **`name`**: String, user's chosen display name.
-    - **`email`**: String, globally unique identity.
-    - **`password`**: String, safely hashed.
-    - **`todos`**: A 1-to-many relationship mapping the user to their `Todo` entries.
-  - **`Todo` Model**:
-    - **`id: String @id @default(cuid())`** – primary key, globally unique ID.
-    - **`userId: String`** – the ID of the `User` who created the todo.
-    - **`content: String`** – human‑readable description of the task.
-    - **`date: DateTime`** – the logical day the todo belongs to. The APIs convert simple `YYYY-MM-DD` strings from the UI into `Date` objects before persisting.
-    - **`status: String @default("not_completed")`** – current state of the todo (e.g., `"not_completed"`, `"completed"`).
-    - **`createdAt: DateTime @default(now())`** – server‑side creation timestamp.
-    - **`updatedAt: DateTime @updatedAt`** – automatically bumped on every update.
-
-- **How dates are queried**
-  - `GET /api/todos?date=YYYY-MM-DD`:
-    - Builds a **start** and **end** `Date` for that day.
-    - Filters by `date >= start AND date < end` so todos are correctly grouped per calendar day regardless of time components.
-  - This design makes it easy to add different time zones or time‑of‑day scheduling later without changing the basic data model.
-
-- **Migrations & schema evolution**
-  - The current schema is small and focused, but Prisma’s migration system (`prisma migrate`) can be used to add columns, indexes, and relations as the app grows.
-  - Example evolutions: add `userId` for multi‑user support, `priority` for sorting, or `projectId` for grouping tasks.
-
----
-
-### Scalability & Business Implementation
-
-- **Data model extensions**
-  - The flexible PostgreSQL schema (via Prisma) facilitates the ongoing addition of multi‑tenant SaaS features, team collaborations, and complex analytics.
-  - Adding fields for tags, recurrences, and granular project organizations requires minimal scaffolding.
-
-- **Performance & scale**
-  - Prisma + PostgreSQL is robust and can easily scale with connection pooling platforms (e.g., PgBouncer, Prisma Accelerate).
-  - Using JWTs over stateful sessions allows the Next.js/Vercel edge functions to independently verify requests globally with near-zero latency.
-  - SWR’s caching layer reduces redundant API round-trips for frequently visited calendar dates.
-
-- **Business Potential**
-  - The calendar-centric layout combined with personalized, authenticated views forms a strong foundation for a freemium SaaS application targeting personal productivity or small businesses.
-
----
-
-### Upcoming Implementations
-- **Session Logout**: Securely clear the client-side JWT and manage active sessions.
-- **Customizable Aesthetics**: Allow users to change the app's background colors and themes.
-- **Priority Labeling**: Add priority indicators (e.g., High, Medium, Low) to `Todo` items to aid sorting and urgency management.
-
----
-
-### Project Philosophy
-
-- **Date‑first thinking**: The calendar is the primary navigation surface; todos are organized around time rather than arbitrary lists.
-- **Simple, explicit flows**: CRUD operations are implemented via clear, typed REST endpoints and small, focused components.
-- **Realistic stack**: Uses production‑ready tools (Next.js App Router, Prisma, PostgreSQL, SWR) to stay close to how a real‑world SaaS would be built.
-- **Extensibility over complexity**: The current feature set is intentionally small but implemented in a way that makes it easy to grow into more complex planning and scheduling features without rewriting the core.
--Login account:
-email :
-[EMAIL_ADDRESS]
-pass: admin123 
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
