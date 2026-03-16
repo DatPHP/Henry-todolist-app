@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import CalendarView from "@/components/calendar-view";
 import TodoList from "@/components/todo-list";
 import LogoutButton from "@/components/logout-button";
 import Link from "next/link";
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function Home() {
+function MainContent() {
 
   //  Check login ? not login to go homepage 
   const router = useRouter()
+  const searchParams = useSearchParams();
+  const dateParam = searchParams.get("date");
 
   useEffect(() => {
 
@@ -27,8 +28,14 @@ export default function Home() {
 
   // show date and set value 
   const [date, setDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10),
+    dateParam || new Date().toISOString().slice(0, 10),
   );
+
+  useEffect(() => {
+    if (dateParam) {
+      setDate(dateParam);
+    }
+  }, [dateParam]);
 
   // logout 
   // (Moved to LogoutButton)
@@ -73,5 +80,13 @@ export default function Home() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen todoBackground flex justify-center items-center">Loading...</div>}>
+      <MainContent />
+    </Suspense>
   );
 }

@@ -8,6 +8,7 @@ import {
   IconButton,
 } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import { toast } from "react-toastify";
 
 export default function TodoForm({ id }: { id?: string }) {
   const router = useRouter();
@@ -62,24 +63,33 @@ export default function TodoForm({ id }: { id?: string }) {
     const method = id ? "PUT" : "POST";
     const url = id ? `/api/todos/${id}` : "/api/todos";
 
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      },
-      body: JSON.stringify({
-        content,
-        date,
-        status,
-      }),
-    });
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          content,
+          date,
+          status,
+        }),
+      });
 
-    router.push("/");
+      if (!response.ok) {
+        throw new Error("Failed to save todo");
+      }
+
+      toast.success(id ? "Todo updated successfully!" : "Todo created successfully!");
+      router.push(`/?date=${date}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "An error occurred");
+    }
   }
 
   const handleCancel = () => {
-    router.push("/");
+    router.push(`/?date=${date}`);
   };
 
   if (loading) {
