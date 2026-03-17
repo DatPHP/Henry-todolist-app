@@ -7,30 +7,30 @@ export default function LoginPage() {
 
   const router = useRouter();
 
-  const [email,setEmail] = useState("");
-  const [password,setPassword] = useState("");
-  const [error,setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  async function handleSubmit(e:any){
+  async function handleSubmit(e: any) {
 
     e.preventDefault();
 
-    const res = await fetch("/api/auth/login",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-      body:JSON.stringify({email,password})
+      body: JSON.stringify({ email, password })
     })
 
     const data = await res.json()
 
-    if(!res.ok){
+    if (!res.ok) {
       setError(data.error)
       return
     }
 
-    localStorage.setItem("token",data.token)
+    localStorage.setItem("token", data.token)
 
     router.push("/")
   }
@@ -45,7 +45,7 @@ export default function LoginPage() {
           placeholder="Email"
           className="border border-gray-300 w-full p-3 rounded-lg focus:outline-none focus:border-black"
           value={email}
-          onChange={e=>setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
           required
         />
 
@@ -54,7 +54,7 @@ export default function LoginPage() {
           placeholder="Password"
           className="border border-gray-300 w-full p-3 rounded-lg focus:outline-none focus:border-black"
           value={password}
-          onChange={e=>setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
           required
         />
 
@@ -68,6 +68,15 @@ export default function LoginPage() {
           Do you have account ?
           <a href="/register" className="text-blue-600 ml-1 hover:underline">
             Register
+          </a>
+        </p>
+        <p className="text-sm text-center mt-3">
+          Did you forget your password?{" "}
+          <a
+            href="/reset-password"
+            className="text-blue-500 hover:underline"
+          >
+            Reset here
           </a>
         </p>
       </form>
