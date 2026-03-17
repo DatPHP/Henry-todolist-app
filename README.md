@@ -7,6 +7,7 @@ A modern Todo List application built with Next.js and TailwindCSS.
 - **Full-stack Task Management**: Add, delete, and mark tasks as completed.
 - **Calendar Integration**: Visualize your tasks on a responsive monthly calendar.
 - **JWT Authentication**: Secure user registration and login system.
+- **Improved Navigation**: Easy switching between login and registration pages.
 - **Responsive UI**: Optimized for both desktop and mobile devices.
 
 ## Tech Stack
