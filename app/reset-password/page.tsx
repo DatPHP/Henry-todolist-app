@@ -65,50 +65,52 @@ export default function ResetPassword() {
     };
 
     return (
+        <div className="min-h-screen todoBackground flex items-center justify-center">
+            <div className="todoContent p-8 rounded-2xl border border-gray-200 shadow-lg w-[350px] space-y-4">
+                <h1 className="text-2xl font-bold text-center mb-2">
+                    Reset Password
+                </h1>
 
-        <div className="max-w-md mx-auto mt-20">
+                <input
+                    type="email"
+                    placeholder="Enter email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="border border-gray-300 w-full p-3 rounded-lg focus:outline-none focus:border-black"
+                />
 
-            <h1 className="text-xl font-bold mb-5">
-                Reset Password
-            </h1>
+                <button
+                    onClick={checkEmail}
+                    className="bg-black text-white w-full p-3 rounded-lg hover:bg-gray-800 transition mt-2"
+                >
+                    Check Email
+                </button>
 
-            <input
-                type="email"
-                placeholder="Enter email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="border p-2 w-full mb-3"
-            />
+                {message && (
+                    <p className={`text-sm text-center ${emailValid ? 'text-green-600' : 'text-red-500'}`}>
+                        {message}
+                    </p>
+                )}
 
-            <button
-                onClick={checkEmail}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-                Check Email
-            </button>
+                {emailValid && (
+                    <div className="space-y-4">
+                        <input
+                            type="password"
+                            placeholder="New password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="border border-gray-300 w-full p-3 rounded-lg focus:outline-none focus:border-black"
+                        />
 
-            <p className="mt-3">{message}</p>
-
-            {emailValid && (
-
-                <>
-                    <input
-                        type="password"
-                        placeholder="New password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="border p-2 w-full mt-4"
-                    />
-
-                    <button
-                        onClick={resetPassword}
-                        className="bg-green-500 text-white px-4 py-2 rounded mt-3"
-                    >
-                        Save new password
-                    </button>
-                </>
-            )}
-
+                        <button
+                            onClick={resetPassword}
+                            className="bg-black text-white w-full p-3 rounded-lg hover:bg-gray-800 transition"
+                        >
+                            Save new password
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 
