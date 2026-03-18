@@ -25,7 +25,7 @@ export default function LogoutButton({ className = "mb-4" }: { className?: strin
       .then((data) => {
         if (data.name) setName(data.name);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleLogout = async () => {
@@ -41,7 +41,7 @@ export default function LogoutButton({ className = "mb-4" }: { className?: strin
     <div className={`flex items-center justify-between gap-3 ${className}`}>
       {name && (
         <p className="text-sm font-medium text-gray-700 truncate min-w-0 flex-1">
-          {greeting}, {name}!
+          <i>{greeting}</i>, <b>{name}</b>!
         </p>
       )}
       <button
