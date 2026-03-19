@@ -41,12 +41,12 @@ function MainContent() {
   // (Moved to LogoutButton)
 
   return (
-    <div className="min-h-screen todoBackground flex justify-center items-center">
-      <div className="w-[450px] todoContent padding-4 mt-4 rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
+    <div className="min-h-screen todoBackground flex flex-col justify-center items-center py-10">
+      <div className="w-[450px]">
+        <LogoutButton className="mb-6 w-full" />
+      </div>
+      <div className="w-[450px] todoContent padding-4 rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
         <main className="p-4">
-          <div className="mb-4">
-            <LogoutButton />
-          </div>
           <div className="mb-4">
             <CalendarView date={date} onDateClick={setDate} />
           </div>

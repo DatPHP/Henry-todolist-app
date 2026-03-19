@@ -38,7 +38,7 @@ export default function LogoutButton({ className = "mb-4" }: { className?: strin
   };
 
   return (
-    <div className={`flex items-center justify-between gap-3 ${className}`}>
+    <div className={`flex items-center justify-between gap-3 bg-[#fefae0] p-4 rounded-xl shadow-md border border-gray-200 relative z-10 mb-6 ${className}`}>
       {name && (
         <p className="text-sm font-medium text-gray-700 truncate min-w-0 flex-1">
           <i>{greeting}</i>, <b>{name}</b>!
