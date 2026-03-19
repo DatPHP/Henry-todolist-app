@@ -1,11 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 export default function TodoItem({ todo, mutate }: {
   todo: { id: string; content: string; status: string };
   mutate: () => void;
 }) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const completed = todo.status === "completed";
 
   async function deleteTodo(id: string) {
@@ -64,7 +82,9 @@ export default function TodoItem({ todo, mutate }: {
         </div>
         <div>
           <p
-            className={`font-medium ${completed ? "todoActiveTile" : ""}`}
+            onClick={() => updateStatus(todo.id, completed ? "not_completed" : "completed")}
+            className={`font-medium cursor-pointer ${completed ? "todoActiveTile" : ""}`}
+            title="Toggle status"
           >
             {todo.content}
           </p>
@@ -73,20 +93,61 @@ export default function TodoItem({ todo, mutate }: {
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2 md:gap-5 mr-2 md:mr-3">
-        <Link
-          href={`/todos/${todo.id}/edit`}
-          className="text-black text-sm font-medium hover:underline"
-        >
-          Edit
-        </Link>
+      <div className="relative flex items-center mr-2 md:mr-3" ref={dropdownRef}>
         <button
-          onClick={() => deleteTodo(todo.id)}
-          className="text-red-600 text-sm font-medium hover:underline"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="text-gray-500 hover:text-gray-700 focus:outline-none p-1 rounded-full hover:bg-gray-100"
         >
-          Delete
+          <MoreVertIcon />
         </button>
+        {isDropdownOpen && (
+          <div className="absolute right-0 top-10 w-28 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+            <div className="py-1">
+              <Link
+                href={`/todos/${todo.id}/edit`}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Edit
+              </Link>
+              <button
+                onClick={() => {
+                  setIsDropdownOpen(false);
+                  setIsDeleteDialogOpen(true);
+                }}
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {isDeleteDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-80 max-w-sm">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Deletion</h3>
+            <p className="text-sm text-gray-500 mb-6">Do you want to delete this todo?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteDialogOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none"
+              >
+                No
+              </button>
+              <button
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  deleteTodo(todo.id);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
