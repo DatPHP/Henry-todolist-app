@@ -101,8 +101,8 @@ export default function CalendarView({
           initialView="dayGridMonth"
           dateClick={(info) => onDateClick(info.dateStr)}
           dayCellClassNames={(arg) => {
-            return dayjs(arg.date).format("YYYY-MM-DD") === selectedDay.format("YYYY-MM-DD") 
-              ? "bg-emerald-100 ring-2 ring-emerald-500 ring-inset" 
+            return dayjs(arg.date).format("YYYY-MM-DD") === selectedDay.format("YYYY-MM-DD")
+              ? "bg-emerald-100 ring-2 ring-emerald-500 ring-inset"
               : "";
           }}
           dayCellContent={(arg) => {
@@ -119,13 +119,9 @@ export default function CalendarView({
                   <div className="text-[12px] absolute -top-1 -right-1 z-10" title="Birthday!">🎂</div>
                 )}
                 {count > 0 && (
-                  <div className="flex gap-1 mt-1 justify-center flex-wrap px-1">
-                    {Array.from({ length: Math.min(count, 3) }).map((_, i) => (
-                      <div key={i} className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-sm" />
-                    ))}
-                    {count > 3 && (
-                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-sm opacity-50" title={`+${count - 3} more`} />
-                    )}
+                  <div className="flex items-center gap-1 mt-1 justify-center text-[10px] sm:text-xs text-gray-500 font-semibold px-1">
+                    <span>{count}</span>
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-sm" />
                   </div>
                 )}
               </div>
