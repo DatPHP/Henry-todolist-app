@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,63 +10,67 @@ export default function ProfilePage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [birthday, setBirthday] = useState("");
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token");
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (user) {
+      if (user.name) setName(user.name);
+      if (user.birthday) {
+        setBirthday(new Date(user.birthday).toISOString().slice(0, 10));
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
-      return;
     }
-
-    fetch("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
-        return res.json();
-      })
-      .then((data) => {
-        if (data.name) setName(data.name);
-        if (data.birthday) {
-          // Format as YYYY-MM-DD for date input
-          setBirthday(new Date(data.birthday).toISOString().slice(0, 10));
-        }
-      })
-      .catch(() => {
-        router.push("/login"); // Token might be invalid
-      })
-      .finally(() => {
-        setLoading(false);
-      });
   }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    try {
+  const mutation = useMutation({
+    mutationFn: async (updatedData: { name: string; birthday: string | null }) => {
+      const token = localStorage.getItem("token");
       const res = await fetch("/api/auth/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name, birthday: birthday || null }),
+        body: JSON.stringify(updatedData),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to update profile");
-      }
-
+      if (!res.ok) throw new Error("Failed to update profile");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
       toast.success("Profile updated successfully!");
-    } catch (error) {
+    },
+    onError: () => {
       toast.error("Failed to update profile. Please try again.");
-    }
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    mutation.mutate({ name, birthday: birthday || null });
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="min-h-screen todoBackground flex justify-center items-center">Loading...</div>;
   }
 
@@ -104,11 +109,12 @@ export default function ProfilePage() {
               className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
             />
           </div>
-          <button
+            <button
             type="submit"
-            className="w-full bg-emerald-500 text-white p-4 justify-center items-center rounded-xl hover:bg-emerald-600 transition-colors font-semibold shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+            disabled={mutation.isPending}
+            className={`w-full bg-emerald-500 text-white p-4 justify-center items-center rounded-xl hover:bg-emerald-600 transition-colors font-semibold shadow-lg shadow-emerald-500/20 active:scale-[0.98] ${mutation.isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            Save Changes
+            {mutation.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
       </div>

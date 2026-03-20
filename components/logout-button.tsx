@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -12,28 +13,34 @@ function getGreeting(): string {
 }
 
 export default function LogoutButton({ className = "mb-4" }: { className?: string }) {
-  const [name, setName] = useState("");
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
+
+  const queryClient = useQueryClient();
   const greeting = getGreeting();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  const { data: user } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Not authorized");
+      return res.json();
+    },
+    enabled: !!token,
+  });
 
-    fetch("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.name) setName(data.name);
-      })
-      .catch(() => { });
-  }, []);
+  const name = user?.name || "";
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", {
       method: "POST",
     });
 
+    queryClient.clear();
     localStorage.removeItem("token");
     window.location.href = "/login";
   };

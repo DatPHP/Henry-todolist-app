@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
 import CalendarView from "@/components/calendar-view";
 import TodoList from "@/components/todo-list";
 import LogoutButton from "@/components/logout-button";
@@ -14,24 +15,28 @@ function MainContent() {
   const searchParams = useSearchParams();
   const dateParam = searchParams.get("date");
 
-  const [user, setUser] = useState<{ name: string; birthday: string | null } | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      router.push("/login")
-      return;
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
+      router.push("/login");
+    } else {
+      setToken(storedToken);
     }
+  }, [router]);
 
-    fetch("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.name) setUser(data);
-      })
-      .catch(() => {});
-  }, [])
+  const { data: user } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Not authorized");
+      return res.json();
+    },
+    enabled: !!token,
+  });
 
   // show date and set value 
   const [date, setDate] = useState<string>(() =>

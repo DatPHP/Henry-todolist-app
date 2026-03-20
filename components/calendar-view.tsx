@@ -5,11 +5,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import useSWR from "swr";
-
-const fetcher = ([url, token]: [string, string]) => fetch(url, {
-  headers: { Authorization: `Bearer ${token}` }
-}).then((r) => r.json());
+import { useQuery } from "@tanstack/react-query";
 
 export default function CalendarView({
   date,
@@ -26,10 +22,17 @@ export default function CalendarView({
     setToken(localStorage.getItem("token"));
   }, []);
 
-  const { data } = useSWR(
-    token ? ["/api/todos", token] : null,
-    fetcher
-  );
+  const { data } = useQuery({
+    queryKey: ['todos', 'all'],
+    queryFn: async () => {
+      const res = await fetch("/api/todos", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!token,
+  });
 
   const todoDates = new Set(
     Array.isArray(data) ? data.map((todo: any) => dayjs(todo.date).format("YYYY-MM-DD")) : []

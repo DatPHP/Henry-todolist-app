@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export default function TodoItem({ todo, mutate }: {
+export default function TodoItem({ todo }: {
   todo: { id: string; content: string; status: string };
-  mutate: () => void;
 }) {
+  const queryClient = useQueryClient();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -26,29 +27,38 @@ export default function TodoItem({ todo, mutate }: {
 
   const completed = todo.status === "completed";
 
-  async function deleteTodo(id: string) {
-    if (!id) return;
-    const res = await fetch(`/api/todos/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-    });
-    if (!res.ok) console.error("Delete API failed", await res.json());
-    mutate();
-  }
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/todos/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!res.ok) throw new Error("Delete API failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    }
+  });
 
-  async function updateStatus(id: string, newStatus: string) {
-    if (!id) return;
-    const res = await fetch(`/api/todos/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    if (!res.ok) console.error("Update API failed", await res.json());
-    mutate();
-  }
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, newStatus }: { id: string; newStatus: string }) => {
+      const res = await fetch(`/api/todos/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Update API failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    }
+  });
+
+  function deleteTodo(id: string) { if (id) deleteMutation.mutate(id); }
+  function updateStatus(id: string, newStatus: string) { if (id) updateMutation.mutate({ id, newStatus }); }
 
   return (
     <div className="flex justify-between px-2 py-4 border-b-2 border-gray-100">

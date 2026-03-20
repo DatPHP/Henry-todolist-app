@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   TextField,
   Button,
@@ -12,12 +13,25 @@ import { toast } from "react-toastify";
 
 export default function TodoForm({ id }: { id?: string }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [content, setContent] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("not_completed");
-  const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState<string | null>(null);
+
+  const { data: todoData, isLoading } = useQuery({
+    queryKey: ['todo', id],
+    queryFn: async () => {
+      const res = await fetch(`/api/todos/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!res.ok) throw new Error(res.status === 404 ? "Todo not found" : "Failed to load");
+      return res.json();
+    },
+    enabled: !!id,
+    retry: false,
+  });
 
   useEffect(() => {
     if (!id) {
@@ -25,74 +39,54 @@ export default function TodoForm({ id }: { id?: string }) {
       const today = new Date();
       const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       setDate(localToday);
-      setLoading(false);
-      return;
+    } else if (todoData) {
+      setContent(todoData.content ?? "");
+      setDate(todoData.date ? new Date(todoData.date).toISOString().slice(0, 10) : "");
+      setStatus(todoData.status ?? "not_completed");
     }
+  }, [id, todoData]);
 
-    let cancelled = false;
+  const saveMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const method = id ? "PUT" : "POST";
+      const url = id ? `/api/todos/${id}` : "/api/todos";
 
-    fetch(`/api/todos/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error(r.status === 404 ? "Todo not found" : "Failed to load");
-        return r.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setContent(data.content ?? "");
-        const dateStr = data.date ? new Date(data.date).toISOString().slice(0, 10) : "";
-        setDate(dateStr);
-        setStatus(data.status ?? "not_completed");
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
-
-  async function handleSubmit(e: any) {
-    e.preventDefault();
-
-    const method = id ? "PUT" : "POST";
-    const url = id ? `/api/todos/${id}` : "/api/todos";
-
-    try {
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`
         },
-        body: JSON.stringify({
-          content,
-          date,
-          status,
-        }),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         throw new Error("Failed to save todo");
       }
 
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
       toast.success(id ? "Todo updated successfully!" : "Todo created successfully!");
       router.push(`/?date=${date}`);
-    } catch (err) {
+    },
+    onError: (err) => {
       toast.error(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
+  });
+
+  function handleSubmit(e: any) {
+    e.preventDefault();
+    saveMutation.mutate({ content, date, status });
   }
 
   const handleCancel = () => {
     router.push(`/?date=${date}`);
   };
 
-  if (loading) {
+  if (id && isLoading) {
     return <p className="text-gray-500">Loading todo...</p>;
   }
 
@@ -125,8 +119,9 @@ export default function TodoForm({ id }: { id?: string }) {
           variant="text"
           className="!text-gray-900 !font-bold !capitalize"
           type="submit"
+          disabled={saveMutation.isPending}
         >
-          {id ? "Update task" : "Add task"}
+          {saveMutation.isPending ? "Saving..." : (id ? "Update task" : "Add task")}
         </Button>
       </div>
       <TextField
