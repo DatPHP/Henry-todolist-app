@@ -34,9 +34,11 @@ export default function CalendarView({
     enabled: !!token,
   });
 
-  const todoDates = new Set(
-    Array.isArray(data) ? data.map((todo: any) => dayjs(todo.date).format("YYYY-MM-DD")) : []
-  );
+  const todoCounts = Array.isArray(data) ? data.reduce((acc: Record<string, number>, todo: any) => {
+    const dateStr = dayjs(todo.date).format("YYYY-MM-DD");
+    acc[dateStr] = (acc[dateStr] || 0) + 1;
+    return acc;
+  }, {}) : {};
 
   const selectedDay = date ? dayjs(date) : dayjs();
   const startOfWeek = selectedDay.startOf("week");
@@ -99,31 +101,35 @@ export default function CalendarView({
           initialView="dayGridMonth"
           dateClick={(info) => onDateClick(info.dateStr)}
           dayCellClassNames={(arg) => {
-            return dayjs(arg.date).format("YYYY-MM-DD") === selectedDay.format("YYYY-MM-DD") ? "bg-blue-100" : "";
+            return dayjs(arg.date).format("YYYY-MM-DD") === selectedDay.format("YYYY-MM-DD") 
+              ? "bg-emerald-100 ring-2 ring-emerald-500 ring-inset" 
+              : "";
           }}
           dayCellContent={(arg) => {
             const dateStr = dayjs(arg.date).format("YYYY-MM-DD");
-            const hasTodo = todoDates.has(dateStr);
+            const count = todoCounts[dateStr] || 0;
             const isBirthday = birthday && dayjs(arg.date).format("MM-DD") === dayjs(birthday).format("MM-DD");
 
             return (
-              <div className="flex flex-col items-center w-full relative">
-                <span className={isBirthday ? "text-emerald-600 font-bold" : ""}>
+              <div className="flex flex-col items-center w-full relative min-h-[40px] pb-1">
+                <span className={isBirthday ? "text-emerald-700 font-bold" : ""}>
                   {arg.dayNumberText}
                 </span>
                 {isBirthday && (
-                  <div className="text-xs absolute -top-1 -right-2" title="Birthday!">🎂</div>
+                  <div className="text-[12px] absolute -top-1 -right-1 z-10" title="Birthday!">🎂</div>
                 )}
-                {hasTodo && (
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-0.5" />
+                {count > 0 && (
+                  <div className="mt-1 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap overflow-hidden text-ellipsis shadow-sm">
+                    {count} {count === 1 ? 'task' : 'tasks'}
+                  </div>
                 )}
               </div>
             );
           }}
           headerToolbar={{
-            left: "prev",
+            left: "prev,next",
             center: "title",
-            right: "next",
+            right: "today",
           }}
           height="auto"
         />

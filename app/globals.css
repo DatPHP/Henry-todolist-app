@@ -100,3 +100,49 @@ color: #3e3e3c;
 .todoOption { 
 color: #bdbdbb;
 }
+
+/* FullCalendar Theme Overrides */
+.fc .fc-button-primary {
+  background-color: #10b981 !important; /* emerald-500 */
+  border-color: #10b981 !important;
+  text-transform: capitalize !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: #059669 !important; /* emerald-600 */
+  border-color: #059669 !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #34d399 !important; /* emerald-400 */
+  border-color: #34d399 !important;
+}
+
+.fc .fc-day-today {
+  background-color: #ecfdf5 !important; /* emerald-50 */
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: #374151 !important;
+  font-weight: 600 !important;
+}
+
+.fc .fc-daygrid-day-number {
+  color: #4b5563 !important;
+  text-decoration: none !important;
+  padding: 4px 8px !important;
+}
+
+/* Ensure mobile calendar stretches properly and wraps nicely */
+.fc .fc-view-harness {
+  min-height: 350px;
+}
+
+.fc-toolbar-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
