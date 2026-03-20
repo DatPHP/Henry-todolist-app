@@ -119,8 +119,13 @@ export default function CalendarView({
                   <div className="text-[12px] absolute -top-1 -right-1 z-10" title="Birthday!">🎂</div>
                 )}
                 {count > 0 && (
-                  <div className="mt-1 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap overflow-hidden text-ellipsis shadow-sm">
-                    {count} {count === 1 ? 'task' : 'tasks'}
+                  <div className="flex gap-1 mt-1 justify-center flex-wrap px-1">
+                    {Array.from({ length: Math.min(count, 3) }).map((_, i) => (
+                      <div key={i} className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-sm" />
+                    ))}
+                    {count > 3 && (
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-sm opacity-50" title={`+${count - 3} more`} />
+                    )}
                   </div>
                 )}
               </div>
