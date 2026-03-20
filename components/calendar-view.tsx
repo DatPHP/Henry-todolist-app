@@ -14,9 +14,11 @@ const fetcher = ([url, token]: [string, string]) => fetch(url, {
 export default function CalendarView({
   date,
   onDateClick,
+  birthday,
 }: {
   date: string;
   onDateClick: (dateStr: string) => void;
+  birthday?: string | null;
 }) {
   const [token, setToken] = useState<string | null>(null);
 
@@ -99,11 +101,18 @@ export default function CalendarView({
           dayCellContent={(arg) => {
             const dateStr = dayjs(arg.date).format("YYYY-MM-DD");
             const hasTodo = todoDates.has(dateStr);
+            const isBirthday = birthday && dayjs(arg.date).format("MM-DD") === dayjs(birthday).format("MM-DD");
+
             return (
-              <div className="flex flex-col items-center">
-                <span>{arg.dayNumberText}</span>
+              <div className="flex flex-col items-center w-full relative">
+                <span className={isBirthday ? "text-emerald-600 font-bold" : ""}>
+                  {arg.dayNumberText}
+                </span>
+                {isBirthday && (
+                  <div className="text-xs absolute -top-1 -right-2" title="Birthday!">🎂</div>
+                )}
                 {hasTodo && (
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-0.5"></div>
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-0.5" />
                 )}
               </div>
             );

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function PUT(req: Request) {
   const authHeader = req.headers.get("Authorization");
   const token = authHeader?.replace("Bearer ", "");
 
@@ -12,18 +12,22 @@ export async function GET(req: Request) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    
+    const body = await req.json();
+    const { name, birthday } = body;
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.update({
       where: { id: decoded.userId },
+      data: {
+        name: name || undefined,
+        birthday: birthday ? new Date(birthday) : null,
+      },
       select: { name: true, birthday: true },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ name: user.name, birthday: user.birthday });
-  } catch {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
   }
 }

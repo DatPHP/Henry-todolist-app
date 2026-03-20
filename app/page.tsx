@@ -14,16 +14,23 @@ function MainContent() {
   const searchParams = useSearchParams();
   const dateParam = searchParams.get("date");
 
+  const [user, setUser] = useState<{ name: string; birthday: string | null } | null>(null);
+
   useEffect(() => {
-
     const token = localStorage.getItem("token")
-
     if (!token) {
-
       router.push("/login")
-
+      return;
     }
 
+    fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.name) setUser(data);
+      })
+      .catch(() => {});
   }, [])
 
   // show date and set value 
@@ -48,7 +55,12 @@ function MainContent() {
       <div className="w-full max-w-[450px] todoContent padding-4 rounded-2xl border border-gray-200 shadow-lg">
         <main className="p-4">
           <div className="mb-4">
-            <CalendarView date={date} onDateClick={setDate} />
+            <CalendarView date={date} onDateClick={setDate} birthday={user?.birthday} />
+          </div>
+
+          <div className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl mb-6">
+            <h4 className="text-emerald-500 font-semibold mb-1">Productivity Tip</h4>
+            <p className="text-sm text-zinc-400">Focus on your most important task first thing in the morning for maximum efficiency.</p>
           </div>
           <div className="space-y-4">{date && <TodoList date={date} />}</div>
           {/* AddTodoButton */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -44,17 +45,29 @@ export default function LogoutButton({ className = "mb-4" }: { className?: strin
           <i>{greeting}</i>, <b>{name}</b>!
         </p>
       )}
-      <button
-        onClick={handleLogout}
-        className="bg-cyan-500 hover:bg-cyan-600 text-white p-2 rounded flex items-center justify-center flex-shrink-0"
-      >
-        <img
-          src="/logout-svgrepo-com.svg"
-          alt="logout"
-          width={20}
-          height={20}
-        />
-      </button>
+      <div className="flex gap-2 flex-shrink-0">
+        <Link
+          href="/profile"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded flex items-center justify-center transition-colors"
+          title="Profile"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </Link>
+        <button
+          onClick={handleLogout}
+          className="bg-cyan-500 hover:bg-cyan-600 text-white p-2 rounded flex items-center justify-center transition-colors"
+          title="Logout"
+        >
+          <img
+            src="/logout-svgrepo-com.svg"
+            alt="logout"
+            width={20}
+            height={20}
+          />
+        </button>
+      </div>
     </div>
   );
 }
