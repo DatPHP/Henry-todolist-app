@@ -26,6 +26,8 @@ model Todo {
   content   String
   date      DateTime
   status    String   @default("not_completed")
+  priority  String   @default("Medium") // Low, Medium, High
+  type      String   @default("Work")   // Work, Study, Chores, Leisure
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

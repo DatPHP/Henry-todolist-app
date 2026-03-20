@@ -6,7 +6,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function TodoItem({ todo }: {
-  todo: { id: string; content: string; status: string };
+  todo: { id: string; content: string; status: string; priority?: string; type?: string; };
 }) {
   const queryClient = useQueryClient();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -98,9 +98,30 @@ export default function TodoItem({ todo }: {
           >
             {todo.content}
           </p>
-          <p className={`text-sm text-gray-500 ${completed ? "text-gray-400" : ""}`}>
-            {todo.status == 'not_completed' ? 'not completed' : 'completed'}
-          </p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <p className={`text-sm text-gray-500 ${completed ? "text-gray-400" : ""}`}>
+              {todo.status == 'not_completed' ? 'not completed' : 'completed'}
+            </p>
+            {todo.priority && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                todo.priority === 'High' ? 'bg-red-100 text-red-700' :
+                todo.priority === 'Medium' ? 'bg-orange-100 text-orange-700' :
+                'bg-green-100 text-green-700'
+              }`}>
+                {todo.priority}
+              </span>
+            )}
+            {todo.type && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                todo.type === 'Work' ? 'bg-blue-100 text-blue-700' :
+                todo.type === 'Study' ? 'bg-purple-100 text-purple-700' :
+                todo.type === 'Chores' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-teal-100 text-teal-700'
+              }`}>
+                {todo.type}
+              </span>
+            )}
+          </div>
         </div>
       </div>
       <div className="relative flex items-center mr-2 md:mr-3" ref={dropdownRef}>

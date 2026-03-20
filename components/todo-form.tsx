@@ -18,6 +18,8 @@ export default function TodoForm({ id }: { id?: string }) {
   const [content, setContent] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("not_completed");
+  const [priority, setPriority] = useState("Medium");
+  const [type, setType] = useState("Work");
   const [error, setError] = useState<string | null>(null);
 
   const { data: todoData, isLoading } = useQuery({
@@ -43,6 +45,8 @@ export default function TodoForm({ id }: { id?: string }) {
       setContent(todoData.content ?? "");
       setDate(todoData.date ? new Date(todoData.date).toISOString().slice(0, 10) : "");
       setStatus(todoData.status ?? "not_completed");
+      setPriority(todoData.priority ?? "Medium");
+      setType(todoData.type ?? "Work");
     }
   }, [id, todoData]);
 
@@ -79,7 +83,7 @@ export default function TodoForm({ id }: { id?: string }) {
 
   function handleSubmit(e: any) {
     e.preventDefault();
-    saveMutation.mutate({ content, date, status });
+    saveMutation.mutate({ content, date, status, priority, type });
   }
 
   const handleCancel = () => {
@@ -182,10 +186,31 @@ export default function TodoForm({ id }: { id?: string }) {
         <div className="flex justify-between items-center py-4 px-6">
           <span className="titleOption text-sm font-semibold">Priority</span>
           <div className="flex items-center">
-            <span className="todoOption">Low</span>
-            <IconButton size="small">
-              <ArrowForwardIosIcon fontSize="small" className="todoOption" />
-            </IconButton>
+            <select
+              className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center py-4 px-6">
+          <span className="titleOption text-sm font-semibold">Type</span>
+          <div className="flex items-center">
+            <select
+              className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+            >
+              <option value="Work">Work</option>
+              <option value="Study">Study</option>
+              <option value="Chores">Chores</option>
+              <option value="Leisure">Leisure</option>
+            </select>
           </div>
         </div>
       </div>

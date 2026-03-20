@@ -61,6 +61,8 @@ export async function POST(req: Request) {
       content: body.content,
       date: new Date(body.date),
       status: body.status || "not_completed",
+      priority: body.priority || 'Medium',
+      type: body.type || 'Work',
       userId
     },
   });
