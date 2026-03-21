@@ -2,12 +2,22 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
+import { loginSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
 
   const body = await req.json();
 
-  const { email, password } = body;
+  const result = loginSchema.safeParse(body);
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: result.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+
+  const { email, password } = result.data;
 
   const user = await prisma.user.findUnique({
     where: { email },

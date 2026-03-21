@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
+import { todoSchema } from "@/lib/validations";
 
 
 // GET todo detail
@@ -48,16 +49,23 @@ export async function PUT(
 
   const body = await req.json();
 
-  const data: { content?: string; date?: Date; status?: string; priority?: string; type?: string } = {};
-  if (typeof body.content === "string") data.content = body.content;
-  if (body.date != null) data.date = new Date(body.date);
-  if (typeof body.status === "string") data.status = body.status;
-  if (typeof body.priority === "string") data.priority = body.priority;
-  if (typeof body.type === "string") data.type = body.type;
+  const result = todoSchema.partial().safeParse(body);
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: result.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+
+  const updateData = { ...result.data };
+  if (updateData.date) {
+    (updateData as any).date = new Date(updateData.date);
+  }
 
   const todo = await prisma.todo.update({
     where: { id },
-    data,
+    data: updateData,
   });
 
   return NextResponse.json(todo);

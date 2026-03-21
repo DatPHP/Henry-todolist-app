@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
+import { todoSchema } from "@/lib/validations";
 
 export async function GET(req: Request) {
 
@@ -56,13 +57,24 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
+  const result = todoSchema.safeParse(body);
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: result.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+
+  const { content, date, status, priority, type } = result.data;
+
   const todo = await prisma.todo.create({
     data: {
-      content: body.content,
-      date: new Date(body.date),
-      status: body.status || "not_completed",
-      priority: body.priority || 'Medium',
-      type: body.type || 'Work',
+      content,
+      date: new Date(date),
+      status,
+      priority,
+      type,
       userId
     },
   });

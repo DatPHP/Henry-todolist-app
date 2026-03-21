@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,19 +10,34 @@ import {
 } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { todoSchema, TodoInput } from "@/lib/validations";
 
 export default function TodoForm({ id }: { id?: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [content, setContent] = useState("");
-  const [date, setDate] = useState("");
-  const [status, setStatus] = useState("not_completed");
-  const [priority, setPriority] = useState("Medium");
-  const [type, setType] = useState("Work");
-  const [error, setError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    watch,
+  } = useForm<TodoInput>({
+    resolver: zodResolver(todoSchema) as any,
+    defaultValues: {
+      content: "",
+      date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+      status: "not_completed",
+      priority: "Medium",
+      type: "Work",
+    },
+  });
 
-  const { data: todoData, isLoading } = useQuery({
+  const watchDate = watch("date");
+
+  const { data: todoData, isLoading, error: queryError } = useQuery({
     queryKey: ['todo', id],
     queryFn: async () => {
       const res = await fetch(`/api/todos/${id}`, {
@@ -36,22 +51,19 @@ export default function TodoForm({ id }: { id?: string }) {
   });
 
   useEffect(() => {
-    if (!id) {
-      // Set to local today's date
-      const today = new Date();
-      const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-      setDate(localToday);
-    } else if (todoData) {
-      setContent(todoData.content ?? "");
-      setDate(todoData.date ? new Date(todoData.date).toISOString().slice(0, 10) : "");
-      setStatus(todoData.status ?? "not_completed");
-      setPriority(todoData.priority ?? "Medium");
-      setType(todoData.type ?? "Work");
+    if (todoData) {
+      reset({
+        content: todoData.content ?? "",
+        date: todoData.date ? new Date(todoData.date).toISOString().slice(0, 10) : "",
+        status: todoData.status ?? "not_completed",
+        priority: todoData.priority ?? "Medium",
+        type: todoData.type ?? "Work",
+      });
     }
-  }, [id, todoData]);
+  }, [todoData, reset]);
 
   const saveMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: TodoInput) => {
       const method = id ? "PUT" : "POST";
       const url = id ? `/api/todos/${id}` : "/api/todos";
 
@@ -65,7 +77,8 @@ export default function TodoForm({ id }: { id?: string }) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save todo");
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to save todo");
       }
 
       return response.json();
@@ -73,31 +86,29 @@ export default function TodoForm({ id }: { id?: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       toast.success(id ? "Todo updated successfully!" : "Todo created successfully!");
-      router.push(`/?date=${date}`);
+      router.push(`/?date=${watchDate}`);
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "An error occurred");
-      setError(err instanceof Error ? err.message : "An error occurred");
     }
   });
 
-  function handleSubmit(e: any) {
-    e.preventDefault();
-    saveMutation.mutate({ content, date, status, priority, type });
-  }
+  const onSubmit = (data: TodoInput) => {
+    saveMutation.mutate(data);
+  };
 
   const handleCancel = () => {
-    router.push(`/?date=${date}`);
+    router.push(`/?date=${watchDate}`);
   };
 
   if (id && isLoading) {
     return <p className="text-gray-500">Loading todo...</p>;
   }
 
-  if (error) {
+  if (queryError) {
     return (
       <div className="space-y-2">
-        <p className="text-red-600">{error}</p>
+        <p className="text-red-600">{queryError.message}</p>
         <button
           type="button"
           className="text-blue-600 underline"
@@ -110,7 +121,7 @@ export default function TodoForm({ id }: { id?: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="flex justify-between items-center mb-4 px-6">
         <Button
           variant="text"
@@ -128,21 +139,23 @@ export default function TodoForm({ id }: { id?: string }) {
           {saveMutation.isPending ? "Saving..." : (id ? "Update task" : "Add task")}
         </Button>
       </div>
-      <TextField
-        variant="standard"
-        placeholder="Write your task"
-        fullWidth
-        multiline
-        minRows={1}
-        className="todoInput !px-6"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        required
-        InputProps={{
-          disableUnderline: true,
-          sx: { fontSize: "26px" },
-        }}
-      />
+      <div className="px-6">
+        <TextField
+          variant="standard"
+          placeholder="Write your task"
+          fullWidth
+          multiline
+          minRows={1}
+          className="todoInput"
+          {...register("content")}
+          error={!!errors.content}
+          helperText={errors.content?.message}
+          InputProps={{
+            disableUnderline: true,
+            sx: { fontSize: "26px" },
+          }}
+        />
+      </div>
 
       {/* Options */}
       <div className="divide-y divide-gray-200">
@@ -157,14 +170,15 @@ export default function TodoForm({ id }: { id?: string }) {
         </div>
 
         <div className="flex justify-between items-center py-4 px-6">
-          <span className="titleOption text-sm font-semibold">Reminder</span>
+          <div className="flex flex-col">
+            <span className="titleOption text-sm font-semibold">Reminder</span>
+            {errors.date && <span className="text-red-500 text-xs">{errors.date.message}</span>}
+          </div>
           <div className="flex items-center">
             <input
               type="date"
-              className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
+              className={`border-none bg-transparent todoOption text-right outline-none cursor-pointer ${errors.date ? 'text-red-500' : ''}`}
+              {...register("date")}
             />
           </div>
         </div>
@@ -174,8 +188,7 @@ export default function TodoForm({ id }: { id?: string }) {
           <div className="flex items-center">
             <select
               className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              {...register("status")}
             >
               <option value="not_completed">Not Completed</option>
               <option value="completed">Completed</option>
@@ -188,8 +201,7 @@ export default function TodoForm({ id }: { id?: string }) {
           <div className="flex items-center">
             <select
               className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
+              {...register("priority")}
             >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -203,8 +215,7 @@ export default function TodoForm({ id }: { id?: string }) {
           <div className="flex items-center">
             <select
               className="border-none bg-transparent todoOption text-right outline-none cursor-pointer"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
+              {...register("type")}
             >
               <option value="Work">Work</option>
               <option value="Study">Study</option>
