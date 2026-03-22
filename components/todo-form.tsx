@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   TextField,
@@ -16,6 +16,8 @@ import { todoSchema, TodoInput } from "@/lib/validations";
 
 export default function TodoForm({ id }: { id?: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const dateParam = searchParams.get("date");
   const queryClient = useQueryClient();
 
   const {
@@ -59,8 +61,17 @@ export default function TodoForm({ id }: { id?: string }) {
         priority: todoData.priority ?? "Medium",
         type: todoData.type ?? "Work",
       });
+    } else if (!id && dateParam) {
+      // Pre-fill date from query param for new todos
+      reset({
+        content: "",
+        date: dateParam,
+        status: "not_completed",
+        priority: "Medium",
+        type: "Work",
+      });
     }
-  }, [todoData, reset]);
+  }, [todoData, reset, id, dateParam]);
 
   const saveMutation = useMutation({
     mutationFn: async (data: TodoInput) => {

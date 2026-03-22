@@ -71,7 +71,7 @@ function MainContent() {
           {/* AddTodoButton */}
           <div className="flex justify-end mt-6 mb-2">
             <Link
-              href="/todos/create"
+              href={`/todos/create?date=${date}`}
               className="border-black bg-black rounded-lg flex items-center justify-center no-underline w-[52px] h-[52px]"
               style={{ borderWidth: 12 }}
             >

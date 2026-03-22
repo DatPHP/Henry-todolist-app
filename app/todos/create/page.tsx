@@ -1,5 +1,6 @@
 import TodoForm from "@/components/todo-form";
 import LogoutButton from "@/components/logout-button";
+import { Suspense } from "react";
 
 
 export default function CreatePage() {
@@ -11,7 +12,9 @@ export default function CreatePage() {
           <LogoutButton className="mb-6" />
         </div>
         <div className="w-full max-w-[450px] todoContent py-6 rounded-2xl shadow-lg">
-          <TodoForm />
+          <Suspense fallback={<p className="text-center text-zinc-500">Loading form...</p>}>
+            <TodoForm />
+          </Suspense>
         </div>
       </div>
     </div>
