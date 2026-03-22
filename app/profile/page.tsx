@@ -43,7 +43,12 @@ export default function ProfilePage() {
   }, [router]);
 
   const mutation = useMutation({
-    mutationFn: async (updatedData: { name: string; birthday: string | null }) => {
+    mutationFn: async (updatedData: { 
+      name: string; 
+      birthday: string | null;
+      currentPassword?: string;
+      newPassword?: string;
+    }) => {
       const token = localStorage.getItem("token");
       const res = await fetch("/api/auth/profile", {
         method: "PUT",
@@ -53,21 +58,52 @@ export default function ProfilePage() {
         },
         body: JSON.stringify(updatedData),
       });
-      if (!res.ok) throw new Error("Failed to update profile");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update profile");
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
       toast.success("Profile updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     },
-    onError: () => {
-      toast.error("Failed to update profile. Please try again.");
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Failed to update profile. Please try again.");
     },
   });
 
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate({ name, birthday: birthday || null });
+    
+    if (newPassword || currentPassword || confirmPassword) {
+      if (!currentPassword) {
+        toast.error("Please enter your current password");
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        toast.error("New passwords do not match");
+        return;
+      }
+      if (newPassword.length < 6) {
+        toast.error("New password must be at least 6 characters");
+        return;
+      }
+    }
+
+    mutation.mutate({ 
+      name, 
+      birthday: birthday || null,
+      currentPassword: currentPassword || undefined,
+      newPassword: newPassword || undefined
+    });
   };
 
   if (isLoading) {
@@ -109,7 +145,44 @@ export default function ProfilePage() {
               className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
             />
           </div>
-            <button
+
+          <div className="pt-4 border-t border-gray-100">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Change Password</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
+                  placeholder="Enter current password"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all bg-gray-50/50"
+                  placeholder="Confirm new password"
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
             type="submit"
             disabled={mutation.isPending}
             className={`w-full bg-emerald-500 text-white p-4 justify-center items-center rounded-xl hover:bg-emerald-600 transition-colors font-semibold shadow-lg shadow-emerald-500/20 active:scale-[0.98] ${mutation.isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
